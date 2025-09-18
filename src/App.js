@@ -9,6 +9,7 @@ import Dashboard from './components/Dashboard';
 import LoginModal from './components/LoginModal';
 import CorsErrorHandler from './components/CorsErrorHandler';
 import QuickCorsGuide from './components/QuickCorsGuide';
+import CorsActivationGuide from './components/CorsActivationGuide';
 
 // 服务导入
 import jiraApi from './services/jiraApi';
@@ -35,6 +36,7 @@ function App() {
   // CORS错误处理状态
   const [showCorsError, setShowCorsError] = useState(false);
   const [showQuickGuide, setShowQuickGuide] = useState(true); // 默认显示简单指导
+  const [showActivationGuide, setShowActivationGuide] = useState(false); // 激活指导
   const [corsRetryCount, setCorsRetryCount] = useState(0);
   const [autoRetrying, setAutoRetrying] = useState(false);
 
@@ -199,8 +201,15 @@ function App() {
     
     // 所有代理都失败了
     message.destroy();
-    message.error('所有代理都无法连接，请检查网络或稍后重试');
-    setShowCorsError(true);
+    
+    // 如果第一个代理是CORS Anywhere，显示激活指导
+    if (availableProxies[0]?.name === 'CORS Anywhere') {
+      setShowActivationGuide(true);
+    } else {
+      message.error('所有代理都无法连接，请检查网络或稍后重试');
+      setShowCorsError(true);
+    }
+    
     setAutoRetrying(false);
     return false;
   };
@@ -408,9 +417,16 @@ function App() {
 
       {/* 登录模态框 */}
       <LoginModal
-        visible={!isAuthenticated && !loading && !showCorsError && !autoRetrying}
+        visible={!isAuthenticated && !loading && !showCorsError && !showActivationGuide && !autoRetrying}
         onLogin={handleLogin}
         loading={loading || autoRetrying}
+      />
+
+      {/* CORS激活指导 */}
+      <CorsActivationGuide
+        visible={showActivationGuide}
+        onClose={() => setShowActivationGuide(false)}
+        onRetry={handleCorsRetry}
       />
 
       {/* 快速CORS解决指导 */}

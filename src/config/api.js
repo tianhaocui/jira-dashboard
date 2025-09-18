@@ -5,30 +5,30 @@ export const API_CONFIG = {
   
   // CORS代理选项（按优先级排序）
   CORS_PROXIES: [
-    // 方案1: AllOrigins (最稳定，直接可用)
-    {
-      name: 'AllOrigins',
-      url: 'https://api.allorigins.win/raw?url=',
-      description: '稳定的免费CORS代理服务'
-    },
-    // 方案2: CORS Anywhere (备用，需要激活但很稳定)
+    // 方案1: CORS Anywhere (支持认证，最可靠)
     {
       name: 'CORS Anywhere',
       url: 'https://cors-anywhere.herokuapp.com/',
-      description: '稳定的代理服务，可能需要激活'
+      description: '支持认证的稳定代理服务'
     },
-    // 方案3: 公共代理服务
+    // 方案2: 公共代理服务
     {
       name: 'CORS.SH',
       url: 'https://cors.sh/',
       description: '简单的CORS代理服务'
     },
-    // 方案4: 直接连接 (通常会失败，但保留作为选项)
+    // 方案3: 直接连接 (通常会失败，但保留作为选项)
     {
       name: '直接连接',
       url: '',
       directConnect: true,
       description: '直接连接Jira服务器，通常会有CORS问题'
+    },
+    // 方案4: AllOrigins (不支持Authorization头，仅作备用)
+    {
+      name: 'AllOrigins',
+      url: 'https://api.allorigins.win/raw?url=',
+      description: '免费代理服务，但不支持认证请求'
     }
   ],
   
@@ -44,8 +44,8 @@ export const API_CONFIG = {
         description: '开发环境 - 使用本地代理'
       };
     } else {
-      // 生产环境：默认使用AllOrigins（最稳定）
-      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（AllOrigins）
+      // 生产环境：默认使用CORS Anywhere（支持认证）
+      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（CORS Anywhere）
       
       if (selectedProxy.directConnect) {
         return {
