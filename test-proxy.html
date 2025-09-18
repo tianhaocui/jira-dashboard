@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>代理测试</title>
+</head>
+<body>
+    <h1>Jira代理测试</h1>
+    <button onclick="testProxy()">测试代理</button>
+    <div id="result"></div>
+
+    <script>
+        async function testProxy() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                // 测试代理端点
+                const response = await fetch('/rest/api/2/serverInfo');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>✅ 代理测试成功!</h3>
+                    <p>状态码: ${response.status}</p>
+                    <p>Jira版本: ${data.version}</p>
+                    <p>服务器标题: ${data.serverTitle}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ 代理测试失败</h3>
+                    <p>错误: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

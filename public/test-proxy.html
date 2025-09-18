@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>代理测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Jira 代理测试</h1>
+    
+    <button onclick="testServerInfo()">测试服务器信息</button>
+    <button onclick="testMyself()">测试用户信息 (API v2)</button>
+    <button onclick="testAuth()">测试认证端点 (Auth v1)</button>
+    <button onclick="testProjects()">测试项目列表</button>
+    <button onclick="testSearch()">测试搜索端点</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(title, success, message, data = null) {
+            const div = document.createElement('div');
+            div.className = `result ${success ? 'success' : 'error'}`;
+            div.innerHTML = `
+                <h3>${success ? '✅' : '❌'} ${title}</h3>
+                <p>${message}</p>
+                ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+            `;
+            resultsDiv.appendChild(div);
+        }
+        
+        async function testServerInfo() {
+            try {
+                const response = await fetch('/rest/api/2/serverInfo');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('服务器信息', true, `Jira版本: ${data.version}`, data);
+                } else {
+                    addResult('服务器信息', false, `HTTP ${response.status}: ${response.statusText}`, data);
+                }
+            } catch (error) {
+                addResult('服务器信息', false, `网络错误: ${error.message}`);
+            }
+        }
+        
+        async function testMyself() {
+            const username = prompt('请输入用户名:');
+            const password = prompt('请输入密码:');
+            
+            if (!username || !password) {
+                addResult('用户信息', false, '需要提供用户名和密码');
+                return;
+            }
+            
+            try {
+                const auth = btoa(`${username}:${password}`);
+                const response = await fetch('/rest/api/2/myself', {
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('用户信息', true, `用户: ${data.displayName}`, data);
+                } else {
+                    addResult('用户信息', false, `HTTP ${response.status}: ${response.statusText}`, data);
+                }
+            } catch (error) {
+                addResult('用户信息', false, `网络错误: ${error.message}`);
+            }
+        }
+        
+        async function testAuth() {
+            const username = prompt('请输入用户名:');
+            const password = prompt('请输入密码:');
+            
+            if (!username || !password) {
+                addResult('认证端点', false, '需要提供用户名和密码');
+                return;
+            }
+            
+            try {
+                const auth = btoa(`${username}:${password}`);
+                const response = await fetch('/rest/auth/1/session', {
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('认证端点', true, `认证成功`, data);
+                } else {
+                    addResult('认证端点', false, `HTTP ${response.status}: ${response.statusText}`, data);
+                }
+            } catch (error) {
+                addResult('认证端点', false, `网络错误: ${error.message}`);
+            }
+        }
+        
+        async function testProjects() {
+            const username = prompt('请输入用户名:');
+            const password = prompt('请输入密码:');
+            
+            if (!username || !password) {
+                addResult('项目列表', false, '需要提供用户名和密码');
+                return;
+            }
+            
+            try {
+                const auth = btoa(`${username}:${password}`);
+                const response = await fetch('/rest/api/2/project', {
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('项目列表', true, `找到 ${data.length} 个项目`, data.slice(0, 5));
+                } else {
+                    addResult('项目列表', false, `HTTP ${response.status}: ${response.statusText}`, data);
+                }
+            } catch (error) {
+                addResult('项目列表', false, `网络错误: ${error.message}`);
+            }
+        }
+        
+        async function testSearch() {
+            const username = prompt('请输入用户名:');
+            const password = prompt('请输入密码:');
+            
+            if (!username || !password) {
+                addResult('搜索端点', false, '需要提供用户名和密码');
+                return;
+            }
+            
+            try {
+                const auth = btoa(`${username}:${password}`);
+                const response = await fetch('/rest/api/2/search?jql=&maxResults=5', {
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('搜索端点', true, `找到 ${data.total} 条工单`, {
+                        total: data.total,
+                        issues: data.issues?.slice(0, 3)
+                    });
+                } else {
+                    addResult('搜索端点', false, `HTTP ${response.status}: ${response.statusText}`, data);
+                }
+            } catch (error) {
+                addResult('搜索端点', false, `网络错误: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

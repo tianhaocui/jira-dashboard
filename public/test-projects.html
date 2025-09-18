@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>项目权限测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { padding: 10px 20px; margin: 5px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Jira 项目权限测试</h1>
+    
+    <button onclick="testAllProjects()">测试所有项目权限</button>
+    <button onclick="testJQLQueries()">测试不同JQL查询</button>
+    <button onclick="clearResults()">清除结果</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(title, type, message, data = null) {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `
+                <h3>${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌'} ${title}</h3>
+                <p>${message}</p>
+                ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+            `;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+        
+        async function getAuth() {
+            const username = prompt('请输入用户名:');
+            const password = prompt('请输入密码:');
+            
+            if (!username || !password) {
+                throw new Error('需要提供用户名和密码');
+            }
+            
+            return btoa(`${username}:${password}`);
+        }
+        
+        async function testAllProjects() {
+            try {
+                const auth = await getAuth();
+                
+                // 1. 获取项目列表
+                addResult('获取项目列表', 'warning', '正在获取项目列表...');
+                
+                let projects = [];
+                
+                // 方法1: 尝试使用内部browse-project API
+                try {
+                    addResult('方法1', 'warning', '尝试使用内部browse-project API...');
+                    const browseResponse = await fetch('/rest/api/1.0/browse-project/project-type/active', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Basic ${auth}`,
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: '"all"'
+                    });
+                    
+                    if (browseResponse.ok) {
+                        const browseData = await browseResponse.json();
+                        if (Array.isArray(browseData)) {
+                            projects = browseData;
+                            addResult('方法1', 'success', `内部API成功: 找到 ${projects.length} 个项目`, projects.slice(0, 5));
+                        }
+                    } else {
+                        addResult('方法1', 'error', `内部API失败: HTTP ${browseResponse.status}`);
+                    }
+                } catch (browseError) {
+                    addResult('方法1', 'error', `内部API错误: ${browseError.message}`);
+                }
+                
+                // 方法2: 如果方法1失败，使用标准API
+                if (projects.length === 0) {
+                    addResult('方法2', 'warning', '尝试使用标准API...');
+                    const projectsResponse = await fetch('/rest/api/2/project', {
+                        headers: {
+                            'Authorization': `Basic ${auth}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                
+                    if (!projectsResponse.ok) {
+                        throw new Error(`HTTP ${projectsResponse.status}: ${projectsResponse.statusText}`);
+                    }
+                    
+                    projects = await projectsResponse.json();
+                    addResult('方法2', 'success', `标准API成功: 找到 ${projects.length} 个项目`, projects.slice(0, 5));
+                }
+                
+                addResult('项目列表汇总', 'success', `总共找到 ${projects.length} 个项目`, projects.slice(0, 10));
+                
+                // 2. 测试每个项目的访问权限
+                addResult('权限测试', 'warning', '开始测试项目权限...');
+                
+                const permissionResults = [];
+                
+                for (let i = 0; i < Math.min(projects.length, 10); i++) {
+                    const project = projects[i];
+                    const projectKey = project.key || project.projectKey;
+                    const projectName = project.name || project.projectName;
+                    
+                    try {
+                        const testResponse = await fetch(`/rest/api/2/search?jql=project="${projectKey}"&maxResults=1`, {
+                            headers: {
+                                'Authorization': `Basic ${auth}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (testResponse.ok) {
+                            const data = await testResponse.json();
+                            permissionResults.push({
+                                key: projectKey,
+                                name: projectName,
+                                accessible: true,
+                                issueCount: data.total
+                            });
+                        } else {
+                            permissionResults.push({
+                                key: projectKey,
+                                name: projectName,
+                                accessible: false,
+                                error: `HTTP ${testResponse.status}`
+                            });
+                        }
+                    } catch (error) {
+                        permissionResults.push({
+                            key: projectKey,
+                            name: projectName,
+                            accessible: false,
+                            error: error.message
+                        });
+                    }
+                }
+                
+                // 显示权限测试结果
+                const accessibleProjects = permissionResults.filter(p => p.accessible);
+                const inaccessibleProjects = permissionResults.filter(p => !p.accessible);
+                
+                addResult('权限测试结果', 'success', 
+                    `可访问项目: ${accessibleProjects.length}/${permissionResults.length}`, 
+                    {
+                        accessible: accessibleProjects,
+                        inaccessible: inaccessibleProjects
+                    }
+                );
+                
+                // 创建表格显示结果
+                createProjectTable(permissionResults);
+                
+            } catch (error) {
+                addResult('项目权限测试', 'error', `测试失败: ${error.message}`);
+            }
+        }
+        
+        async function testJQLQueries() {
+            try {
+                const auth = await getAuth();
+                
+                const queries = [
+                    { name: '所有工单', jql: '' },
+                    { name: '最近1个月', jql: `created >= "${getDateString(1)}" OR updated >= "${getDateString(1)}"` },
+                    { name: '最近3个月', jql: `created >= "${getDateString(3)}" OR updated >= "${getDateString(3)}"` },
+                    { name: '最近6个月', jql: `created >= "${getDateString(6)}" OR updated >= "${getDateString(6)}"` },
+                    { name: '当前用户的工单', jql: 'assignee = currentUser()' },
+                    { name: '未解决的工单', jql: 'resolution = Unresolved' }
+                ];
+                
+                addResult('JQL查询测试', 'warning', '开始测试不同的JQL查询...');
+                
+                for (const query of queries) {
+                    try {
+                        const response = await fetch(`/rest/api/2/search?jql=${encodeURIComponent(query.jql)}&maxResults=1`, {
+                            headers: {
+                                'Authorization': `Basic ${auth}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            addResult(query.name, 'success', `找到 ${data.total} 条工单`, { jql: query.jql });
+                        } else {
+                            addResult(query.name, 'error', `查询失败: HTTP ${response.status}`, { jql: query.jql });
+                        }
+                    } catch (error) {
+                        addResult(query.name, 'error', `查询失败: ${error.message}`, { jql: query.jql });
+                    }
+                }
+                
+            } catch (error) {
+                addResult('JQL查询测试', 'error', `测试失败: ${error.message}`);
+            }
+        }
+        
+        function createProjectTable(results) {
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>项目Key</th>
+                        <th>项目名称</th>
+                        <th>可访问</th>
+                        <th>工单数量</th>
+                        <th>错误信息</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results.map(project => `
+                        <tr style="background-color: ${project.accessible ? '#d4edda' : '#f8d7da'}">
+                            <td>${project.key}</td>
+                            <td>${project.name}</td>
+                            <td>${project.accessible ? '✅ 是' : '❌ 否'}</td>
+                            <td>${project.issueCount || '-'}</td>
+                            <td>${project.error || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            resultsDiv.appendChild(table);
+        }
+        
+        function getDateString(monthsAgo) {
+            const date = new Date();
+            date.setMonth(date.getMonth() - monthsAgo);
+            return date.toISOString().split('T')[0];
+        }
+    </script>
+</body>
+</html>
