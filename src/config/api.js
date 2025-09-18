@@ -5,19 +5,19 @@ export const API_CONFIG = {
   
   // CORS代理选项（按优先级排序）
   CORS_PROXIES: [
-    // 方案1: 公共代理服务 (稳定可靠)
+    // 方案1: 简单可靠的代理
     {
-      name: 'CORS Proxy',
-      url: 'https://corsproxy.io/?',
-      description: '稳定的公共CORS代理服务'
+      name: 'CORS Proxy API',
+      url: 'https://api.codetabs.com/v1/proxy?quest=',
+      description: '简单稳定的CORS代理服务'
     },
     // 方案2: 备用代理
     {
-      name: 'Proxy CORS',
-      url: 'https://proxy-cors.vercel.app/api/proxy?url=',
-      description: '基于Vercel的CORS代理'
+      name: 'Heroku CORS',
+      url: 'https://cors-proxy-server.herokuapp.com/',
+      description: '基于Heroku的CORS代理'
     },
-    // 方案3: 简单代理
+    // 方案3: 公共代理
     {
       name: 'CORS.SH',
       url: 'https://cors.sh/',
@@ -44,8 +44,8 @@ export const API_CONFIG = {
         description: '开发环境 - 使用本地代理'
       };
     } else {
-      // 生产环境：默认使用CORS Proxy（稳定可靠）
-      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（CORS Proxy）
+      // 生产环境：默认使用CORS Proxy API（稳定可靠）
+      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（CORS Proxy API）
       
       if (selectedProxy.directConnect) {
         return {
