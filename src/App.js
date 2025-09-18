@@ -180,7 +180,8 @@ function App() {
         setShowCorsError(true);
       }
     } else {
-      setShowLoginModal(true);
+      // 如果没有认证信息，CORS错误对话框关闭后会自动显示登录框
+      // 因为 LoginModal 的 visible 条件是 !isAuthenticated && !loading && !showCorsError
     }
   };
 
