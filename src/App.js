@@ -7,6 +7,7 @@ import Header from './components/Header';
 import FilterPanel from './components/FilterPanel';
 import Dashboard from './components/Dashboard';
 import LoginModal from './components/LoginModal';
+import CorsErrorHandler from './components/CorsErrorHandler';
 
 // 服务导入
 import jiraApi from './services/jiraApi';
@@ -29,6 +30,11 @@ function App() {
     inProgress: 0,
     pending: 0
   }); // 筛选条件下的统计数据
+
+  // CORS错误处理状态
+  const [showCorsError, setShowCorsError] = useState(false);
+  const [corsRetryCount, setCorsRetryCount] = useState(0);
+
   const [filters, setFilters] = useState({
     project: 'all',
     sprint: 'all',
@@ -137,11 +143,56 @@ function App() {
         return false;
       }
     } catch (error) {
-      message.error('登录失败：' + error.message);
+      console.error('登录失败:', error);
+      
+      // 检查是否是CORS错误
+      if (error.message?.includes('CORS') || error.code === 'ERR_NETWORK' || !error.response) {
+        setShowCorsError(true);
+        message.error('网络连接问题，请尝试切换代理服务器');
+      } else {
+        message.error('登录失败：' + error.message);
+      }
+      
       jiraApi.clearCredentials();
       return false;
     } finally {
       setLoading(false);
+    }
+  };
+
+  // CORS错误处理函数
+  const handleCorsRetry = async () => {
+    setCorsRetryCount(prev => prev + 1);
+    setShowCorsError(false);
+    
+    // 如果有认证信息，尝试重新连接
+    if (jiraApi.isConfigured()) {
+      try {
+        const result = await jiraApi.testConnection();
+        if (result.success) {
+          setIsAuthenticated(true);
+          await loadData();
+          message.success('连接成功！');
+        } else {
+          setShowCorsError(true);
+        }
+      } catch (error) {
+        setShowCorsError(true);
+      }
+    } else {
+      setShowLoginModal(true);
+    }
+  };
+
+  // 切换CORS代理
+  const handleSwitchProxy = async (proxyIndex) => {
+    try {
+      const newConfig = jiraApi.switchCorsProxy(proxyIndex);
+      message.info(`已切换到: ${newConfig.proxyName}`);
+      return newConfig;
+    } catch (error) {
+      message.error('切换代理失败');
+      throw error;
     }
   };
 
@@ -311,9 +362,19 @@ function App() {
 
       {/* 登录模态框 */}
       <LoginModal
-        visible={!isAuthenticated && !loading}
+        visible={!isAuthenticated && !loading && !showCorsError}
         onLogin={handleLogin}
         loading={loading}
+      />
+
+      {/* CORS错误处理模态框 */}
+      <CorsErrorHandler
+        visible={showCorsError}
+        onClose={() => setShowCorsError(false)}
+        onRetry={handleCorsRetry}
+        onSwitchProxy={handleSwitchProxy}
+        availableProxies={jiraApi.getAvailableProxies()}
+        currentProxyIndex={jiraApi.currentProxyIndex || 0}
       />
     </div>
   );

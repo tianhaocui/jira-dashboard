@@ -151,11 +151,15 @@ code {
 
 .stat-card {
   background: #fff;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 24px;
+  border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   border-left: 4px solid #1890ff;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .stat-card.success {
@@ -171,16 +175,18 @@ code {
 }
 
 .stat-card .stat-value {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: bold;
   color: #262626;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  line-height: 1.2;
 }
 
 .stat-card .stat-label {
-  font-size: 14px;
+  font-size: 15px;
   color: #666;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  font-weight: 500;
 }
 
 .stat-card .stat-change {
@@ -317,16 +323,22 @@ code {
   }
   
   .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 12px;
   }
   
   .stat-card {
-    padding: 16px;
+    padding: 20px;
+    min-height: 100px;
   }
   
   .stat-card .stat-value {
-    font-size: 24px;
+    font-size: 28px;
+  }
+  
+  .stat-card .stat-label {
+    font-size: 14px;
+    margin-bottom: 8px;
   }
   
   .chart-container {

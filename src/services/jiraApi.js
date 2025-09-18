@@ -1,13 +1,19 @@
 import axios from 'axios';
+import { API_CONFIG } from '../config/api';
 
 // Jira API配置
 class JiraApiService {
   constructor() {
-    // 开发环境使用代理（空baseURL），生产环境使用完整URL
-    this.baseUrl = process.env.NODE_ENV === 'development' ? '' : 'https://jira.logisticsteam.com';
+    // 获取API配置
+    this.apiConfig = API_CONFIG.getApiConfig();
+    this.baseUrl = this.apiConfig.baseURL;
     
-    console.log(`🔧 Jira API BaseURL: ${this.baseUrl || '(使用代理)'}`);
+    console.log(`🔧 Jira API 配置: ${this.apiConfig.description}`);
     console.log(`🌍 环境: ${process.env.NODE_ENV}`);
+    console.log(`📡 BaseURL: ${this.baseUrl || '(使用本地代理)'}`);
+    
+    // 存储当前代理索引（用于切换）
+    this.currentProxyIndex = 0;
     this.username = localStorage.getItem('jira_username') || '';
     this.password = localStorage.getItem('jira_password') || '';
     
@@ -53,6 +59,43 @@ class JiraApiService {
     // 保存到localStorage
     localStorage.setItem('jira_username', username);
     localStorage.setItem('jira_password', password);
+    
+    console.log('🔐 认证信息已更新');
+  }
+
+  // 切换CORS代理（生产环境）
+  switchCorsProxy(proxyIndex) {
+    if (process.env.NODE_ENV !== 'development') {
+      const newConfig = API_CONFIG.switchCorsProxy(proxyIndex);
+      this.apiConfig = newConfig;
+      this.baseUrl = newConfig.baseURL;
+      this.currentProxyIndex = proxyIndex;
+      
+      // 重新创建axios实例
+      this.client = axios.create({
+        baseURL: this.baseUrl,
+        timeout: 30000,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }
+      });
+      
+      // 重新设置认证
+      if (this.username && this.password) {
+        const authString = btoa(`${this.username}:${this.password}`);
+        this.client.defaults.headers.common['Authorization'] = `Basic ${authString}`;
+      }
+      
+      console.log(`🔄 已切换到代理: ${newConfig.description}`);
+      return newConfig;
+    }
+    return this.apiConfig;
+  }
+
+  // 获取可用的代理列表
+  getAvailableProxies() {
+    return API_CONFIG.CORS_PROXIES;
   }
 
   // 清除认证信息

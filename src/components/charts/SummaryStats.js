@@ -109,7 +109,7 @@ const SummaryStats = ({ stats, allIssues = [] }) => {
     <div style={{ marginBottom: 24 }}>
       <Row gutter={[16, 16]}>
         {statCards.map((stat, index) => (
-          <Col xs={12} sm={8} md={6} lg={3} key={index}>
+          <Col xs={12} sm={12} md={8} lg={6} xl={4} key={index}>
             <div 
               className={`stat-card ${stat.type} ${stat.clickable ? 'clickable' : ''}`}
               onClick={stat.clickable ? stat.onClick : undefined}
@@ -159,24 +159,39 @@ const SummaryStats = ({ stats, allIssues = [] }) => {
       </Row>
 
       {/* 进度条显示 */}
-      <Row gutter={[24, 16]} style={{ marginTop: 16 }}>
+      <Row gutter={[20, 16]} style={{ marginTop: 20 }}>
         <Col xs={24} md={12}>
           <div style={{ 
+            padding: '20px 24px', 
             background: '#fff', 
-            padding: 16, 
-            borderRadius: 8, 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+            borderRadius: '12px', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            border: '1px solid #f0f0f0'
           }}>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>工单解决进度</div>
+            <div style={{ 
+              marginBottom: 12, 
+              color: '#262626', 
+              fontSize: 16,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: '#52c41a', marginRight: 8 }}>
+                <CheckCircleOutlined />
+              </span>
+              工单解决率
+            </div>
             <Progress 
               percent={parseFloat(resolutionRate)} 
               status={parseFloat(resolutionRate) > 80 ? 'success' : 'active'}
               strokeColor={{
                 '0%': '#108ee9',
-                '100%': '#87d068',
+                '100%': '#52c41a',
               }}
+              strokeWidth={8}
+              format={(percent) => `${percent}%`}
             />
-            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: '#666', marginTop: 8 }}>
               {resolvedIssues} / {totalIssues} 个工单已解决
             </div>
           </div>
@@ -184,12 +199,25 @@ const SummaryStats = ({ stats, allIssues = [] }) => {
         
         <Col xs={24} md={12}>
           <div style={{ 
+            padding: '20px 24px', 
             background: '#fff', 
-            padding: 16, 
-            borderRadius: 8, 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+            borderRadius: '12px', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            border: '1px solid #f0f0f0'
           }}>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>故事点完成进度</div>
+            <div style={{ 
+              marginBottom: 12, 
+              color: '#262626', 
+              fontSize: 16,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: '#722ed1', marginRight: 8 }}>
+                <TrophyOutlined />
+              </span>
+              故事点完成率
+            </div>
             <Progress 
               percent={parseFloat(storyPointsCompletionRate)} 
               status={parseFloat(storyPointsCompletionRate) > 80 ? 'success' : 'active'}
@@ -197,8 +225,10 @@ const SummaryStats = ({ stats, allIssues = [] }) => {
                 '0%': '#722ed1',
                 '100%': '#eb2f96',
               }}
+              strokeWidth={8}
+              format={(percent) => `${percent}%`}
             />
-            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: '#666', marginTop: 8 }}>
               {resolvedStoryPoints} / {totalStoryPoints} 故事点已完成
             </div>
           </div>

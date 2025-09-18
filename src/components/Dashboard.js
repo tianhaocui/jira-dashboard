@@ -7,9 +7,7 @@ import SummaryStats from './charts/SummaryStats';
 import StatusPieChart from './charts/StatusPieChart';
 import PriorityPieChart from './charts/PriorityPieChart';
 import IssueTypePieChart from './charts/IssueTypePieChart';
-import DeveloperWorkloadChart from './charts/DeveloperWorkloadChart';
 import SprintProgressChart from './charts/SprintProgressChart';
-import ModuleDistributionChart from './charts/ModuleDistributionChart';
 import CreationTrendChart from './charts/CreationTrendChart';
 
 const Dashboard = ({ issues, loading, filters }) => {
@@ -50,9 +48,7 @@ const Dashboard = ({ issues, loading, filters }) => {
   const statusDistribution = DataProcessor.generateStatusDistribution(issues);
   const priorityDistribution = DataProcessor.generatePriorityDistribution(issues);
   const issueTypeDistribution = DataProcessor.generateIssueTypeDistribution(issues);
-  const developerWorkload = DataProcessor.generateDeveloperWorkload(issues);
   const sprintProgress = DataProcessor.generateSprintProgress(issues);
-  const moduleDistribution = DataProcessor.generateModuleDistribution(issues);
   const creationTrend = DataProcessor.generateCreationTrend(issues, 'week');
 
   return (
@@ -93,18 +89,8 @@ const Dashboard = ({ issues, loading, filters }) => {
         </Col>
       </Row>
 
-      {/* 第二行：柱状图 */}
+      {/* 第二行：分析图表 */}
       <Row gutter={[24, 24]} className="dashboard-row">
-        <Col xs={24} lg={12} className="dashboard-col">
-          <Card 
-            title="开发者工作量分析" 
-            className="dashboard-card"
-            bodyStyle={{ padding: '20px' }}
-          >
-            <DeveloperWorkloadChart data={developerWorkload} />
-          </Card>
-        </Col>
-        
         <Col xs={24} lg={12} className="dashboard-col">
           <Card 
             title="Sprint 进度分析" 
@@ -112,19 +98,6 @@ const Dashboard = ({ issues, loading, filters }) => {
             bodyStyle={{ padding: '20px' }}
           >
             <SprintProgressChart data={sprintProgress} />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 第三行：其他分析图表 */}
-      <Row gutter={[24, 24]} className="dashboard-row">
-        <Col xs={24} lg={12} className="dashboard-col">
-          <Card 
-            title="模块分布" 
-            className="dashboard-card"
-            bodyStyle={{ padding: '20px' }}
-          >
-            <ModuleDistributionChart data={moduleDistribution} />
           </Card>
         </Col>
         
