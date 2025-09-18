@@ -375,6 +375,7 @@ function App() {
         visible={showCorsError && showQuickGuide}
         onClose={() => setShowCorsError(false)}
         onRetry={handleCorsRetry}
+        onShowAdvanced={() => setShowQuickGuide(false)}
       />
 
       {/* 详细CORS错误处理模态框 */}

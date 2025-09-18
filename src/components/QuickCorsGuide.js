@@ -2,7 +2,6 @@ import React from 'react';
 import { Modal, Button, Steps, Alert, Typography, Space } from 'antd';
 import { 
   LinkOutlined, 
-  CheckCircleOutlined, 
   ReloadOutlined,
   ExclamationCircleOutlined 
 } from '@ant-design/icons';
@@ -10,7 +9,7 @@ import {
 const { Title, Paragraph, Text } = Typography;
 const { Step } = Steps;
 
-const QuickCorsGuide = ({ visible, onClose, onRetry }) => {
+const QuickCorsGuide = ({ visible, onClose, onRetry, onShowAdvanced }) => {
   const handleActivateCors = () => {
     window.open('https://cors-anywhere.herokuapp.com/corsdemo', '_blank');
   };
@@ -29,6 +28,9 @@ const QuickCorsGuide = ({ visible, onClose, onRetry }) => {
       footer={[
         <Button key="close" onClick={onClose}>
           稍后处理
+        </Button>,
+        <Button key="advanced" onClick={onShowAdvanced}>
+          更多选项
         </Button>,
         <Button 
           key="activate" 
