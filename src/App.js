@@ -36,6 +36,7 @@ function App() {
   const [showCorsError, setShowCorsError] = useState(false);
   const [showQuickGuide, setShowQuickGuide] = useState(true); // 默认显示简单指导
   const [corsRetryCount, setCorsRetryCount] = useState(0);
+  const [autoRetrying, setAutoRetrying] = useState(false);
 
   const [filters, setFilters] = useState({
     project: 'all',
@@ -149,8 +150,8 @@ function App() {
       
       // 检查是否是CORS错误
       if (error.message?.includes('CORS') || error.code === 'ERR_NETWORK' || !error.response) {
-        setShowCorsError(true);
-        message.error('网络连接问题，请尝试切换代理服务器');
+        console.log('🚨 检测到CORS错误，自动尝试其他代理');
+        await handleAutoRetry(credentials);
       } else {
         message.error('登录失败：' + error.message);
       }
@@ -160,6 +161,48 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 自动重试不同代理
+  const handleAutoRetry = async (credentials) => {
+    setAutoRetrying(true);
+    const availableProxies = jiraApi.getAvailableProxies();
+    
+    message.loading('正在自动尝试不同的代理服务器...', 0);
+    
+    for (let i = 0; i < availableProxies.length; i++) {
+      try {
+        console.log(`🔄 尝试代理 ${i + 1}/${availableProxies.length}: ${availableProxies[i].name}`);
+        
+        // 切换到新代理
+        jiraApi.switchCorsProxy(i);
+        
+        // 重新设置认证信息
+        jiraApi.setCredentials(credentials.username, credentials.password);
+        
+        // 测试连接
+        const result = await jiraApi.testConnection();
+        
+        if (result.success) {
+          message.destroy();
+          message.success(`✅ 使用 ${availableProxies[i].name} 连接成功！`);
+          setIsAuthenticated(true);
+          await loadData();
+          setAutoRetrying(false);
+          return true;
+        }
+      } catch (proxyError) {
+        console.log(`❌ 代理 ${availableProxies[i].name} 失败:`, proxyError.message);
+        continue;
+      }
+    }
+    
+    // 所有代理都失败了
+    message.destroy();
+    message.error('所有代理都无法连接，请检查网络或稍后重试');
+    setShowCorsError(true);
+    setAutoRetrying(false);
+    return false;
   };
 
   // CORS错误处理函数
@@ -365,9 +408,9 @@ function App() {
 
       {/* 登录模态框 */}
       <LoginModal
-        visible={!isAuthenticated && !loading && !showCorsError}
+        visible={!isAuthenticated && !loading && !showCorsError && !autoRetrying}
         onLogin={handleLogin}
-        loading={loading}
+        loading={loading || autoRetrying}
       />
 
       {/* 快速CORS解决指导 */}

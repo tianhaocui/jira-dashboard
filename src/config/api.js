@@ -5,12 +5,11 @@ export const API_CONFIG = {
   
   // CORS代理选项（按优先级排序）
   CORS_PROXIES: [
-    // 方案1: 直接连接 (推荐，与本地开发相同)
+    // 方案1: ThingProxy (最稳定，直接可用)
     {
-      name: '直接连接',
-      url: '',
-      directConnect: true,
-      description: '直接连接Jira服务器，与本地开发相同的方式'
+      name: 'ThingProxy',
+      url: 'https://thingproxy.freeboard.io/fetch/',
+      description: '稳定的CORS代理服务，直接可用'
     },
     // 方案2: CORS Anywhere (需要激活)
     {
@@ -18,17 +17,18 @@ export const API_CONFIG = {
       url: 'https://cors-anywhere.herokuapp.com/',
       description: '需要先访问 https://cors-anywhere.herokuapp.com/corsdemo 激活'
     },
-    // 方案3: ThingProxy
-    {
-      name: 'ThingProxy',
-      url: 'https://thingproxy.freeboard.io/fetch/',
-      description: '简单的CORS代理服务'
-    },
-    // 方案4: AllOrigins (对认证请求支持有限)
+    // 方案3: AllOrigins (备用)
     {
       name: 'AllOrigins',
       url: 'https://api.allorigins.win/raw?url=',
-      description: '免费CORS代理服务，对认证请求支持有限'
+      description: '免费CORS代理服务，备用选项'
+    },
+    // 方案4: 直接连接 (通常会失败，但保留作为选项)
+    {
+      name: '直接连接',
+      url: '',
+      directConnect: true,
+      description: '直接连接Jira服务器，通常会有CORS问题'
     }
   ],
   
@@ -44,8 +44,8 @@ export const API_CONFIG = {
         description: '开发环境 - 使用本地代理'
       };
     } else {
-      // 生产环境：默认尝试直接连接
-      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（直接连接）
+      // 生产环境：默认使用ThingProxy（最稳定）
+      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（ThingProxy）
       
       if (selectedProxy.directConnect) {
         return {
