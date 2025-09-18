@@ -72,60 +72,20 @@ const CorsErrorHandler = ({
       />
 
       <Alert
-        message="💡 推荐方案"
-        description="本地开发时直接连接是成功的，我们提供了相同的直接连接选项作为首选方案。"
-        type="info"
+        message="🚀 快速解决方案"
+        description="这是标准的CORS跨域问题。最快的解决方法是激活CORS代理服务，只需要2步操作。"
+        type="success"
         showIcon
         style={{ marginBottom: 16 }}
       />
 
       <Title level={4}>🛠️ 解决方案</Title>
 
-      {/* 方案1: 切换代理 */}
-      <div style={{ marginBottom: 24 }}>
-        <Title level={5}>
-          <ReloadOutlined style={{ color: '#1890ff', marginRight: 8 }} />
-          方案1: 切换CORS代理服务
-        </Title>
-        <Paragraph type="secondary">
-          尝试使用不同的代理服务器来绕过CORS限制
-        </Paragraph>
-        
-        <List
-          size="small"
-          dataSource={availableProxies}
-          renderItem={(proxy, index) => (
-            <List.Item
-              actions={[
-                <Button
-                  key="switch"
-                  type={index === currentProxyIndex ? "primary" : "default"}
-                  size="small"
-                  loading={loading}
-                  disabled={index === currentProxyIndex}
-                  onClick={() => handleSwitchProxy(index)}
-                  icon={index === currentProxyIndex ? <CheckCircleOutlined /> : <ReloadOutlined />}
-                >
-                  {index === currentProxyIndex ? '当前使用' : '切换到此代理'}
-                </Button>
-              ]}
-            >
-              <List.Item.Meta
-                title={proxy.name}
-                description={proxy.description}
-              />
-            </List.Item>
-          )}
-        />
-      </div>
-
-      <Divider />
-
-      {/* 方案2: 激活CORS Anywhere */}
+      {/* 方案1: 激活CORS Anywhere (最推荐) */}
       <div style={{ marginBottom: 24 }}>
         <Title level={5}>
           <LinkOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-          方案2: 激活CORS Anywhere代理 (推荐)
+          方案1: 激活CORS Anywhere代理 (推荐，2步搞定)
         </Title>
         <Paragraph type="secondary">
           CORS Anywhere是最稳定的代理服务，但需要先激活
@@ -155,6 +115,46 @@ const CorsErrorHandler = ({
             切换到CORS Anywhere
           </Button>
         </Space>
+      </div>
+
+      <Divider />
+
+      {/* 方案2: 切换代理 */}
+      <div style={{ marginBottom: 24 }}>
+        <Title level={5}>
+          <ReloadOutlined style={{ color: '#1890ff', marginRight: 8 }} />
+          方案2: 尝试其他CORS代理服务
+        </Title>
+        <Paragraph type="secondary">
+          如果CORS Anywhere无法使用，可以尝试其他代理服务器
+        </Paragraph>
+        
+        <List
+          size="small"
+          dataSource={availableProxies}
+          renderItem={(proxy, index) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="switch"
+                  type={index === currentProxyIndex ? "primary" : "default"}
+                  size="small"
+                  loading={loading}
+                  disabled={index === currentProxyIndex}
+                  onClick={() => handleSwitchProxy(index)}
+                  icon={index === currentProxyIndex ? <CheckCircleOutlined /> : <ReloadOutlined />}
+                >
+                  {index === currentProxyIndex ? '当前使用' : '切换到此代理'}
+                </Button>
+              ]}
+            >
+              <List.Item.Meta
+                title={proxy.name}
+                description={proxy.description}
+              />
+            </List.Item>
+          )}
+        />
       </div>
 
       <Divider />

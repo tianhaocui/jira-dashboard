@@ -33,9 +33,6 @@ const LoginModal = ({ visible, onLogin, loading }) => {
           <Title level={3} style={{ margin: 0 }}>
             连接到 Jira
           </Title>
-          <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
-            请输入您的 Jira 服务器信息
-          </Paragraph>
         </div>
       }
       open={visible}

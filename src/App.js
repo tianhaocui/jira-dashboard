@@ -8,6 +8,7 @@ import FilterPanel from './components/FilterPanel';
 import Dashboard from './components/Dashboard';
 import LoginModal from './components/LoginModal';
 import CorsErrorHandler from './components/CorsErrorHandler';
+import QuickCorsGuide from './components/QuickCorsGuide';
 
 // 服务导入
 import jiraApi from './services/jiraApi';
@@ -33,6 +34,7 @@ function App() {
 
   // CORS错误处理状态
   const [showCorsError, setShowCorsError] = useState(false);
+  const [showQuickGuide, setShowQuickGuide] = useState(true); // 默认显示简单指导
   const [corsRetryCount, setCorsRetryCount] = useState(0);
 
   const [filters, setFilters] = useState({
@@ -368,9 +370,16 @@ function App() {
         loading={loading}
       />
 
-      {/* CORS错误处理模态框 */}
+      {/* 快速CORS解决指导 */}
+      <QuickCorsGuide
+        visible={showCorsError && showQuickGuide}
+        onClose={() => setShowCorsError(false)}
+        onRetry={handleCorsRetry}
+      />
+
+      {/* 详细CORS错误处理模态框 */}
       <CorsErrorHandler
-        visible={showCorsError}
+        visible={showCorsError && !showQuickGuide}
         onClose={() => setShowCorsError(false)}
         onRetry={handleCorsRetry}
         onSwitchProxy={handleSwitchProxy}
