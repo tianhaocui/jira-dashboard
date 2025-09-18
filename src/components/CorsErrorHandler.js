@@ -16,7 +16,8 @@ const CorsErrorHandler = ({
   onRetry, 
   onSwitchProxy,
   availableProxies = [],
-  currentProxyIndex = 0 
+  currentProxyIndex = 0,
+  retryCount = 0
 }) => {
   const [loading, setLoading] = useState(false);
 
@@ -35,29 +36,6 @@ const CorsErrorHandler = ({
     }
   };
 
-  const solutions = [
-    {
-      title: '方案1: 切换CORS代理',
-      description: '尝试使用不同的代理服务器',
-      action: 'switch-proxy',
-      icon: <ReloadOutlined />,
-      color: '#1890ff'
-    },
-    {
-      title: '方案2: 激活CORS Anywhere',
-      description: '访问代理服务激活页面',
-      action: 'activate-cors',
-      icon: <LinkOutlined />,
-      color: '#52c41a'
-    },
-    {
-      title: '方案3: 使用浏览器扩展',
-      description: '安装CORS浏览器扩展',
-      action: 'browser-extension',
-      icon: <WarningOutlined />,
-      color: '#faad14'
-    }
-  ];
 
   return (
     <Modal
@@ -87,7 +65,7 @@ const CorsErrorHandler = ({
     >
       <Alert
         message="CORS跨域访问被阻止"
-        description="从GitHub Pages访问Jira服务器时遇到跨域限制，这是浏览器的安全机制。"
+        description={`从GitHub Pages访问Jira服务器时遇到跨域限制，这是浏览器的安全机制。${retryCount > 0 ? ` (已重试 ${retryCount} 次)` : ''}`}
         type="warning"
         showIcon
         style={{ marginBottom: 16 }}

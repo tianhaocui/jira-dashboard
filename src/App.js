@@ -376,6 +376,7 @@ function App() {
         onSwitchProxy={handleSwitchProxy}
         availableProxies={jiraApi.getAvailableProxies()}
         currentProxyIndex={jiraApi.currentProxyIndex || 0}
+        retryCount={corsRetryCount}
       />
     </div>
   );
