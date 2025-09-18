@@ -124,7 +124,13 @@ class JiraApiService {
       console.error('❌ 连接测试失败:', error.response?.status, error.response?.statusText);
       console.error('   错误详情:', error.message);
       
-      // 尝试备用端点
+      // 如果使用CORS代理，不尝试备用端点，直接返回错误
+      if (this.apiConfig.useCorsProxy) {
+        console.log('🚫 使用CORS代理时跳过备用端点测试');
+        return { success: false, error: `连接失败: ${error.message}` };
+      }
+      
+      // 只在非代理环境下尝试备用端点
       try {
         console.log('🔄 尝试备用端点: /rest/auth/1/session');
         const sessionResponse = await this.client.get('/rest/auth/1/session');

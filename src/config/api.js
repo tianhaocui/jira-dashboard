@@ -5,13 +5,14 @@ export const API_CONFIG = {
   
   // CORS代理选项（按优先级排序）
   CORS_PROXIES: [
-    // 方案1: AllOrigins (推荐，稳定性好)
+    // 方案1: 直接连接 (推荐，与本地开发相同)
     {
-      name: 'AllOrigins',
-      url: 'https://api.allorigins.win/raw?url=',
-      description: '免费CORS代理服务，稳定性较好'
+      name: '直接连接',
+      url: '',
+      directConnect: true,
+      description: '直接连接Jira服务器，与本地开发相同的方式'
     },
-    // 方案2: CORS Anywhere (需要临时访问)
+    // 方案2: CORS Anywhere (需要激活)
     {
       name: 'CORS Anywhere',
       url: 'https://cors-anywhere.herokuapp.com/',
@@ -22,6 +23,12 @@ export const API_CONFIG = {
       name: 'ThingProxy',
       url: 'https://thingproxy.freeboard.io/fetch/',
       description: '简单的CORS代理服务'
+    },
+    // 方案4: AllOrigins (对认证请求支持有限)
+    {
+      name: 'AllOrigins',
+      url: 'https://api.allorigins.win/raw?url=',
+      description: '免费CORS代理服务，对认证请求支持有限'
     }
   ],
   
@@ -37,14 +44,24 @@ export const API_CONFIG = {
         description: '开发环境 - 使用本地代理'
       };
     } else {
-      // 生产环境：使用CORS代理
-      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个
-      return {
-        baseURL: selectedProxy.url + encodeURIComponent(this.JIRA_BASE_URL),
-        useCorsProxy: true,
-        proxyName: selectedProxy.name,
-        description: `生产环境 - 使用${selectedProxy.name}代理`
-      };
+      // 生产环境：默认尝试直接连接
+      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（直接连接）
+      
+      if (selectedProxy.directConnect) {
+        return {
+          baseURL: this.JIRA_BASE_URL,
+          useCorsProxy: false,
+          proxyName: selectedProxy.name,
+          description: `生产环境 - ${selectedProxy.description}`
+        };
+      } else {
+        return {
+          baseURL: selectedProxy.url + encodeURIComponent(this.JIRA_BASE_URL),
+          useCorsProxy: true,
+          proxyName: selectedProxy.name,
+          description: `生产环境 - 使用${selectedProxy.name}代理`
+        };
+      }
     }
   },
   
@@ -52,12 +69,22 @@ export const API_CONFIG = {
   switchCorsProxy(proxyIndex = 0) {
     if (proxyIndex >= 0 && proxyIndex < this.CORS_PROXIES.length) {
       const proxy = this.CORS_PROXIES[proxyIndex];
-      return {
-        baseURL: proxy.url + encodeURIComponent(this.JIRA_BASE_URL),
-        useCorsProxy: true,
-        proxyName: proxy.name,
-        description: `使用${proxy.name}代理`
-      };
+      
+      if (proxy.directConnect) {
+        return {
+          baseURL: this.JIRA_BASE_URL,
+          useCorsProxy: false,
+          proxyName: proxy.name,
+          description: `使用${proxy.name} - ${proxy.description}`
+        };
+      } else {
+        return {
+          baseURL: proxy.url + encodeURIComponent(this.JIRA_BASE_URL),
+          useCorsProxy: true,
+          proxyName: proxy.name,
+          description: `使用${proxy.name}代理`
+        };
+      }
     }
     return this.getApiConfig();
   }

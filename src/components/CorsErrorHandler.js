@@ -71,6 +71,14 @@ const CorsErrorHandler = ({
         style={{ marginBottom: 16 }}
       />
 
+      <Alert
+        message="💡 推荐方案"
+        description="本地开发时直接连接是成功的，我们提供了相同的直接连接选项作为首选方案。"
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
+
       <Title level={4}>🛠️ 解决方案</Title>
 
       {/* 方案1: 切换代理 */}
@@ -117,21 +125,35 @@ const CorsErrorHandler = ({
       <div style={{ marginBottom: 24 }}>
         <Title level={5}>
           <LinkOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-          方案2: 激活CORS Anywhere代理
+          方案2: 激活CORS Anywhere代理 (推荐)
         </Title>
         <Paragraph type="secondary">
-          如果使用CORS Anywhere代理，需要先激活服务
+          CORS Anywhere是最稳定的代理服务，但需要先激活
         </Paragraph>
+        <div style={{ background: '#f6f8fa', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
+          <Text strong>激活步骤：</Text>
+          <ol style={{ margin: '8px 0', paddingLeft: '20px' }}>
+            <li>点击下方"访问激活页面"按钮</li>
+            <li>在新页面中点击"Request temporary access to the demo server"</li>
+            <li>返回本页面，切换到"CORS Anywhere"代理</li>
+            <li>点击"重试连接"</li>
+          </ol>
+        </div>
         <Space>
           <Button
             type="primary"
-            ghost
             icon={<LinkOutlined />}
             onClick={() => window.open('https://cors-anywhere.herokuapp.com/corsdemo', '_blank')}
           >
             访问激活页面
           </Button>
-          <Text type="secondary">点击"Request temporary access"按钮</Text>
+          <Button
+            ghost
+            onClick={() => handleSwitchProxy(0)}
+            disabled={currentProxyIndex === 0}
+          >
+            切换到CORS Anywhere
+          </Button>
         </Space>
       </div>
 
