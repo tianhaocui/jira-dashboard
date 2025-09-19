@@ -8,7 +8,7 @@ export const API_CONFIG = {
     // 方案1: Vercel代理服务器 (最可靠，像本地一样)
     {
       name: 'Vercel代理服务器',
-      url: 'https://jira-proxy-fkp96ojl5-tianhaocuis-projects.vercel.app',
+      url: 'https://jira-proxy-dofllbg70-tianhaocuis-projects.vercel.app',
       description: 'Vercel部署的代理服务器，完全模拟本地开发环境',
       isVercelProxy: true
     },
