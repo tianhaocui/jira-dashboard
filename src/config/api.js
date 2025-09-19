@@ -5,20 +5,27 @@ export const API_CONFIG = {
   
   // CORS代理选项
   CORS_PROXIES: [
-    // 方案1: 自定义代理服务器
+    // 方案1: 本地开发使用本地代理
     {
-      name: '自定义代理服务器',
-      url: 'https://cors-proxy.fringe.zone/https://jira.logisticsteam.com',
-      description: '公共CORS代理服务器'
+      name: '本地代理服务器',
+      url: 'http://localhost:3001',
+      description: '本地Node.js代理服务器',
+      localOnly: true
     },
-    // 方案2: 备用代理
+    // 方案2: 生产环境使用corsproxy.io
     {
-      name: 'AllOrigins代理',
-      url: 'https://api.allorigins.win/raw?url=',
-      description: '备用公共代理服务器',
+      name: 'CORS代理',
+      url: 'https://corsproxy.io/?',
+      description: '生产环境CORS代理',
       needsEncoding: true
     },
-    // 方案3: 直接连接
+    // 方案3: 备用代理
+    {
+      name: '备用代理',
+      url: 'https://cors-anywhere.herokuapp.com/',
+      description: '备用CORS代理（需要激活）'
+    },
+    // 方案4: 直接连接
     {
       name: '直接连接',
       url: '',
@@ -29,23 +36,38 @@ export const API_CONFIG = {
   
   // 获取当前环境的API配置
   getApiConfig() {
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isProduction = process.env.NODE_ENV === 'production';
     
-    if (isDevelopment) {
-      // 开发环境：使用本地代理
+    // 根据环境选择合适的代理
+    let proxy;
+    if (isProduction) {
+      // 生产环境：跳过本地代理，使用公共代理
+      proxy = this.CORS_PROXIES.find(p => !p.localOnly) || this.CORS_PROXIES[1];
+    } else {
+      // 开发环境：优先使用本地代理
+      proxy = this.CORS_PROXIES[0];
+    }
+    
+    if (proxy.directConnect) {
       return {
-        baseURL: '',
+        baseURL: this.JIRA_BASE_URL,
         useCorsProxy: false,
-        description: '开发环境 - 使用本地代理'
+        proxyName: proxy.name,
+        description: `使用${proxy.name} - ${proxy.description}`
       };
     } else {
-      // 生产环境：使用公共CORS代理
-      const proxy = this.CORS_PROXIES[0]; // 使用第一个代理
+      let baseURL;
+      if (proxy.needsEncoding) {
+        baseURL = proxy.url + encodeURIComponent(this.JIRA_BASE_URL);
+      } else {
+        baseURL = proxy.url;
+      }
+      
       return {
-        baseURL: proxy.url,
+        baseURL: baseURL,
         useCorsProxy: true,
         proxyName: proxy.name,
-        description: `生产环境 - 使用${proxy.name}`
+        description: `使用${proxy.name} - ${proxy.description}`
       };
     }
   },

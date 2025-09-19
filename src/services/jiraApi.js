@@ -63,34 +63,31 @@ class JiraApiService {
     console.log('🔐 认证信息已更新');
   }
 
-  // 切换CORS代理（生产环境）
+  // 切换CORS代理
   switchCorsProxy(proxyIndex) {
-    if (process.env.NODE_ENV !== 'development') {
-      const newConfig = API_CONFIG.switchCorsProxy(proxyIndex);
-      this.apiConfig = newConfig;
-      this.baseUrl = newConfig.baseURL;
-      this.currentProxyIndex = proxyIndex;
-      
-      // 重新创建axios实例
-      this.client = axios.create({
-        baseURL: this.baseUrl,
-        timeout: 30000,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        }
-      });
-      
-      // 重新设置认证
-      if (this.username && this.password) {
-        const authString = btoa(`${this.username}:${this.password}`);
-        this.client.defaults.headers.common['Authorization'] = `Basic ${authString}`;
+    const newConfig = API_CONFIG.switchCorsProxy(proxyIndex);
+    this.apiConfig = newConfig;
+    this.baseUrl = newConfig.baseURL;
+    this.currentProxyIndex = proxyIndex;
+    
+    // 重新创建axios实例
+    this.client = axios.create({
+      baseURL: this.baseUrl,
+      timeout: 30000,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       }
-      
-      console.log(`🔄 已切换到代理: ${newConfig.description}`);
-      return newConfig;
+    });
+    
+    // 重新设置认证
+    if (this.username && this.password) {
+      const authString = btoa(`${this.username}:${this.password}`);
+      this.client.defaults.headers.common['Authorization'] = `Basic ${authString}`;
     }
-    return this.apiConfig;
+    
+    console.log(`🔄 已切换到代理: ${newConfig.description}`);
+    return newConfig;
   }
 
   // 获取可用的代理列表
