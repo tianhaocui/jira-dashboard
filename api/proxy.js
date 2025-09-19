@@ -3,11 +3,12 @@ export default async function handler(req, res) {
   // 设置CORS头
   res.setHeader('Access-Control-Allow-Origin', 'https://tianhaocui.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept, User-Agent, Cache-Control');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  // 处理预检请求
+  // 处理预检请求 - 直接返回，不代理到Jira
   if (req.method === 'OPTIONS') {
+    console.log('处理OPTIONS预检请求');
     res.status(200).end();
     return;
   }
@@ -32,7 +33,11 @@ export default async function handler(req, res) {
     if (req.headers.authorization) {
       headers.Authorization = req.headers.authorization;
       console.log('传递认证头:', req.headers.authorization.substring(0, 20) + '...');
+    } else {
+      console.log('⚠️ 警告: 没有找到Authorization头');
     }
+
+    console.log('所有请求头:', Object.keys(req.headers));
 
     // 构建请求选项
     const options = {
