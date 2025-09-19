@@ -5,30 +5,30 @@ export const API_CONFIG = {
   
   // CORS代理选项（按优先级排序）
   CORS_PROXIES: [
-    // 方案1: 直接连接 (优先尝试，最快最稳定)
+    // 方案1: Vercel代理服务器 (最可靠，像本地一样)
+    {
+      name: 'Vercel代理服务器',
+      url: 'https://jira-proxy-fkp96ojl5-tianhaocuis-projects.vercel.app',
+      description: 'Vercel部署的代理服务器，完全模拟本地开发环境'
+    },
+    // 方案2: 直接连接 (备用尝试)
     {
       name: '直接连接',
       url: '',
       directConnect: true,
-      description: '直接连接Jira服务器，最快最稳定的方式'
+      description: '直接连接Jira服务器'
     },
-    // 方案2: 简单可靠的代理
+    // 方案3: 公共代理备用
     {
-      name: 'CORS Proxy API',
-      url: 'https://api.codetabs.com/v1/proxy?quest=',
-      description: '简单稳定的CORS代理服务'
+      name: 'AllOrigins Raw',
+      url: 'https://api.allorigins.win/raw?url=',
+      description: '公共代理服务备用'
     },
-    // 方案3: 备用代理
+    // 方案4: 最后备用
     {
-      name: 'Heroku CORS',
-      url: 'https://cors-proxy-server.herokuapp.com/',
-      description: '基于Heroku的CORS代理'
-    },
-    // 方案4: 公共代理
-    {
-      name: 'CORS.SH',
-      url: 'https://cors.sh/',
-      description: '简单的CORS代理服务'
+      name: 'CORS Anywhere',
+      url: 'https://cors-anywhere.herokuapp.com/',
+      description: '最后备用代理'
     }
   ],
   
@@ -44,8 +44,8 @@ export const API_CONFIG = {
         description: '开发环境 - 使用本地代理'
       };
     } else {
-      // 生产环境：默认尝试直接连接（最快最稳定）
-      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（直接连接）
+      // 生产环境：默认使用Vercel代理服务器（最可靠）
+      const selectedProxy = this.CORS_PROXIES[0]; // 默认使用第一个（Vercel代理）
       
       if (selectedProxy.directConnect) {
         return {
