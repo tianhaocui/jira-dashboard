@@ -15,7 +15,16 @@ export default async function handler(req, res) {
 
   // 获取路径参数
   const { path } = req.query;
-  const targetPath = path ? `/${Array.isArray(path) ? path.join('/') : path}` : '';
+  let targetPath = '';
+  
+  if (path) {
+    if (Array.isArray(path)) {
+      targetPath = `/${path.join('/')}`;
+    } else {
+      targetPath = `/${path}`;
+    }
+  }
+  
   const targetUrl = `https://jira.logisticsteam.com/rest${targetPath}`;
   
   console.log(`代理请求: ${req.method} ${targetUrl}`);
