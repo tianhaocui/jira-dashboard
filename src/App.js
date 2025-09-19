@@ -143,24 +143,21 @@ function App() {
         await loadData();
         return true;
       } else {
-        // 检查是否是CORS错误，如果是则自动重试
+        // 显示登录失败错误
         if (result.error?.includes('Network Error') || result.error?.includes('CORS') || result.error?.includes('Access-Control')) {
-          console.log('🚨 检测到CORS错误，自动尝试其他代理');
-          await handleAutoRetry(credentials);
-          return false;
+          message.error('连接失败：请检查网络连接或Jira服务器地址');
         } else {
           message.error('登录失败：' + result.error);
-          jiraApi.clearCredentials();
-          return false;
         }
+        jiraApi.clearCredentials();
+        return false;
       }
     } catch (error) {
       console.error('登录失败:', error);
       
-      // 检查是否是CORS错误
+      // 显示错误信息
       if (error.message?.includes('CORS') || error.code === 'ERR_NETWORK' || !error.response) {
-        console.log('🚨 检测到CORS错误，自动尝试其他代理');
-        await handleAutoRetry(credentials);
+        message.error('连接失败：请检查网络连接或Jira服务器地址');
       } else {
         message.error('登录失败：' + error.message);
       }

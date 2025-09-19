@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/api';
+import corsWorkarounds from '../utils/corsWorkarounds';
 
 // Jira API配置
 class JiraApiService {
@@ -40,8 +41,19 @@ class JiraApiService {
     // 响应拦截器
     this.client.interceptors.response.use(
       (response) => response,
-      (error) => {
+      async (error) => {
         console.error('Jira API Error:', error);
+        
+        // 如果是CORS错误，尝试使用备用方案
+        if (this.isCorsError(error)) {
+          console.log('🔄 检测到CORS错误，尝试备用方案...');
+          try {
+            return await this.handleCorsError(error);
+          } catch (fallbackError) {
+            console.error('🚨 备用方案也失败了:', fallbackError);
+          }
+        }
+        
         if (error.response?.status === 401) {
           // 认证失败，清除本地存储的凭据
           this.clearCredentials();
@@ -49,6 +61,48 @@ class JiraApiService {
         return Promise.reject(error);
       }
     );
+  }
+
+  // 检测是否是CORS错误
+  isCorsError(error) {
+    return (
+      error.code === 'ERR_NETWORK' ||
+      error.message?.includes('CORS') ||
+      error.message?.includes('Access-Control') ||
+      error.message?.includes('Network Error') ||
+      !error.response // 通常CORS错误不会有response对象
+    );
+  }
+
+  // 处理CORS错误的备用方案
+  async handleCorsError(originalError) {
+    const originalConfig = originalError.config;
+    const url = `${this.baseUrl}${originalConfig.url}`;
+    
+    console.log(`🔧 尝试CORS备用方案访问: ${url}`);
+    
+    try {
+      // 尝试使用智能CORS绕过方案
+      const result = await corsWorkarounds.smartRequest(url, {
+        method: originalConfig.method?.toUpperCase() || 'GET',
+        headers: originalConfig.headers,
+        body: originalConfig.data,
+        timeout: 15000
+      });
+      
+      // 将结果转换为axios响应格式
+      return {
+        data: result.data || result,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: originalConfig,
+        request: { responseURL: url }
+      };
+    } catch (error) {
+      console.error('🚨 所有CORS绕过方案都失败了:', error);
+      throw originalError; // 返回原始错误
+    }
   }
 
   // 设置认证信息

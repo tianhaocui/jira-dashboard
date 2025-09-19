@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Modal, Alert, Button, List, Space, Typography, Divider } from 'antd';
+import { Modal, Alert, Button, List, Space, Typography, Divider, message } from 'antd';
 import { 
   ExclamationCircleOutlined, 
   ReloadOutlined, 
   LinkOutlined,
   CheckCircleOutlined,
-  WarningOutlined
+  WarningOutlined,
+  RocketOutlined
 } from '@ant-design/icons';
+import corsWorkarounds from '../utils/corsWorkarounds';
+import dynamicProxy from '../utils/dynamicProxy';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -20,6 +23,7 @@ const CorsErrorHandler = ({
   retryCount = 0
 }) => {
   const [loading, setLoading] = useState(false);
+  const [testingProxy, setTestingProxy] = useState(false);
 
   const handleSwitchProxy = async (proxyIndex) => {
     setLoading(true);
@@ -33,6 +37,35 @@ const CorsErrorHandler = ({
     } catch (error) {
       console.error('切换代理失败:', error);
       setLoading(false);
+    }
+  };
+
+  // 测试代码内CORS解决方案
+  const testCodeBasedSolutions = async () => {
+    setTestingProxy(true);
+    try {
+      message.info('🔄 正在测试代码内CORS解决方案...');
+      
+      // 测试Jira服务器连接
+      const testUrl = 'https://jira.logisticsteam.com/rest/api/2/serverInfo';
+      
+      const result = await corsWorkarounds.smartRequest(testUrl, {
+        method: 'GET',
+        timeout: 15000
+      });
+      
+      message.success(`✅ 成功！使用方案: ${result.method}`);
+      
+      // 如果成功，尝试重新登录
+      setTimeout(() => {
+        onRetry();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('代码内CORS解决方案测试失败:', error);
+      message.error(`❌ 代码内解决方案失败: ${error.message}`);
+    } finally {
+      setTestingProxy(false);
     }
   };
 
@@ -51,6 +84,15 @@ const CorsErrorHandler = ({
       footer={[
         <Button key="close" onClick={onClose}>
           关闭
+        </Button>,
+        <Button 
+          key="test-proxy" 
+          icon={<RocketOutlined />}
+          loading={testingProxy}
+          onClick={testCodeBasedSolutions}
+          style={{ marginRight: 8 }}
+        >
+          尝试代码内解决方案
         </Button>,
         <Button 
           key="retry" 
