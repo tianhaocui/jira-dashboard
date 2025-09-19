@@ -143,9 +143,16 @@ function App() {
         await loadData();
         return true;
       } else {
-        message.error('登录失败：' + result.error);
-        jiraApi.clearCredentials();
-        return false;
+        // 检查是否是CORS错误，如果是则自动重试
+        if (result.error?.includes('Network Error') || result.error?.includes('CORS') || result.error?.includes('Access-Control')) {
+          console.log('🚨 检测到CORS错误，自动尝试其他代理');
+          await handleAutoRetry(credentials);
+          return false;
+        } else {
+          message.error('登录失败：' + result.error);
+          jiraApi.clearCredentials();
+          return false;
+        }
       }
     } catch (error) {
       console.error('登录失败:', error);
