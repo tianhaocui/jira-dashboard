@@ -26,13 +26,11 @@ export const API_CONFIG = {
         description: '开发环境 - 使用本地代理'
       };
     } else {
-      // 生产环境：使用Vercel代理服务器
-      const proxy = this.CORS_PROXIES[0];
+      // 生产环境：暂时直接连接（由于Vercel部署保护问题）
       return {
-        baseURL: proxy.url,
-        useCorsProxy: true,
-        proxyName: proxy.name,
-        description: `生产环境 - 使用${proxy.name}代理`
+        baseURL: this.JIRA_BASE_URL,
+        useCorsProxy: false,
+        description: '生产环境 - 直接连接Jira（需要浏览器CORS扩展）'
       };
     }
   },
