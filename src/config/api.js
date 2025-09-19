@@ -15,7 +15,7 @@ export const API_CONFIG = {
     // 方案2: 生产环境使用Netlify Functions
     {
       name: 'Netlify代理',
-      url: 'https://jira-dashboard-proxy.netlify.app',
+      url: 'https://melodic-cocada-438aaf.netlify.app',
       description: '生产环境Netlify代理'
     },
     // 方案3: 备用代理

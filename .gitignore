@@ -51,3 +51,6 @@ pids
 tmp/
 temp/
 .vercel
+
+# Local Netlify folder
+.netlify
