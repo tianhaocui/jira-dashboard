@@ -170,53 +170,6 @@ function App() {
   };
 
   // 自动重试不同代理
-  const handleAutoRetry = async (credentials) => {
-    setAutoRetrying(true);
-    const availableProxies = jiraApi.getAvailableProxies();
-    
-    message.loading('正在自动尝试不同的代理服务器...', 0);
-    
-    for (let i = 0; i < availableProxies.length; i++) {
-      try {
-        console.log(`🔄 尝试代理 ${i + 1}/${availableProxies.length}: ${availableProxies[i].name}`);
-        
-        // 切换到新代理
-        jiraApi.switchCorsProxy(i);
-        
-        // 重新设置认证信息
-        jiraApi.setCredentials(credentials.username, credentials.password);
-        
-        // 测试连接
-        const result = await jiraApi.testConnection();
-        
-        if (result.success) {
-          message.destroy();
-          message.success(`✅ 使用 ${availableProxies[i].name} 连接成功！`);
-          setIsAuthenticated(true);
-          await loadData();
-          setAutoRetrying(false);
-          return true;
-        }
-      } catch (proxyError) {
-        console.log(`❌ 代理 ${availableProxies[i].name} 失败:`, proxyError.message);
-        continue;
-      }
-    }
-    
-    // 所有代理都失败了
-    message.destroy();
-    
-    // 如果第一个代理是CORS Anywhere，显示激活指导
-    if (availableProxies[0]?.name === 'CORS Anywhere') {
-      setShowActivationGuide(true);
-    } else {
-      message.error('所有代理都无法连接，请检查网络或稍后重试');
-      setShowCorsError(true);
-    }
-    
-    setAutoRetrying(false);
-    return false;
-  };
 
   // CORS错误处理函数
   const handleCorsRetry = async () => {

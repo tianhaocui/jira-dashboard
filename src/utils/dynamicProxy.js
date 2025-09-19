@@ -245,7 +245,7 @@ class DynamicProxy {
     this.proxyWindow = null;
 
     // 清理pending请求
-    for (const [requestId, pending] of this.pendingRequests) {
+    for (const [, pending] of this.pendingRequests) {
       clearTimeout(pending.timeout);
       pending.reject(new Error('代理已清理'));
     }
@@ -254,4 +254,5 @@ class DynamicProxy {
   }
 }
 
-export default new DynamicProxy();
+const dynamicProxy = new DynamicProxy();
+export default dynamicProxy;

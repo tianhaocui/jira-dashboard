@@ -177,7 +177,7 @@ class IframeProxy {
 
   // 清理资源
   cleanup() {
-    for (const [origin, iframeData] of this.iframes) {
+    for (const [, iframeData] of this.iframes) {
       if (document.body.contains(iframeData.element)) {
         document.body.removeChild(iframeData.element);
       }
@@ -187,7 +187,7 @@ class IframeProxy {
     this.iframes.clear();
     
     // 清理pending请求
-    for (const [requestId, pending] of this.pendingRequests) {
+    for (const [, pending] of this.pendingRequests) {
       clearTimeout(pending.timeout);
       pending.reject(new Error('Proxy cleanup'));
     }
@@ -196,4 +196,5 @@ class IframeProxy {
   }
 }
 
-export default new IframeProxy();
+const iframeProxy = new IframeProxy();
+export default iframeProxy;

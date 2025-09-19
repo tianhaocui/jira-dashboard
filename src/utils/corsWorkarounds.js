@@ -147,7 +147,7 @@ class CorsWorkarounds {
   // 方案5: 使用fetch with no-cors mode（只能发送请求，无法读取响应）
   async noCorsRequest(url, options = {}) {
     try {
-      const response = await fetch(url, {
+      await fetch(url, {
         mode: 'no-cors',
         method: options.method || 'GET',
         headers: options.headers,
@@ -249,4 +249,5 @@ class CorsWorkarounds {
   }
 }
 
-export default new CorsWorkarounds();
+const corsWorkarounds = new CorsWorkarounds();
+export default corsWorkarounds;

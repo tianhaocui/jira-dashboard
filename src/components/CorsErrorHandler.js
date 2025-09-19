@@ -9,7 +9,6 @@ import {
   RocketOutlined
 } from '@ant-design/icons';
 import corsWorkarounds from '../utils/corsWorkarounds';
-import dynamicProxy from '../utils/dynamicProxy';
 
 const { Title, Paragraph, Text } = Typography;
 
