@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   // 处理预检请求 - 直接返回，不代理到Jira
   if (req.method === 'OPTIONS') {
     console.log('处理OPTIONS预检请求');
-    res.status(200).end();
+    res.status(200).json({ message: 'CORS preflight OK' });
     return;
   }
 

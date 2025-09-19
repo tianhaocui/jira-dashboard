@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "functions": {
+    "api/proxy.js": {
+      "runtime": "@vercel/node"
+    },
+    "api/health.js": {
+      "runtime": "@vercel/node"
+    }
+  },
   "rewrites": [
     {
       "source": "/rest/(.*)",
