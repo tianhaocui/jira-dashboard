@@ -1,15 +1,17 @@
 // Vercel Serverless Function for Jira Proxy
 export default async function handler(req, res) {
+  console.log(`收到请求: ${req.method} ${req.url}`);
+  
   // 设置CORS头
   res.setHeader('Access-Control-Allow-Origin', 'https://tianhaocui.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept, User-Agent, Cache-Control');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  // 处理预检请求 - 直接返回，不代理到Jira
+  // 处理预检请求 - 必须在所有其他逻辑之前
   if (req.method === 'OPTIONS') {
-    console.log('处理OPTIONS预检请求');
-    res.status(200).json({ message: 'CORS preflight OK' });
+    console.log('✅ 处理OPTIONS预检请求，直接返回200');
+    res.status(200).end();
     return;
   }
 
