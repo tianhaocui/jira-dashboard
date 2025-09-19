@@ -9,7 +9,8 @@ export const API_CONFIG = {
     {
       name: 'Vercel代理服务器',
       url: 'https://jira-proxy-fkp96ojl5-tianhaocuis-projects.vercel.app',
-      description: 'Vercel部署的代理服务器，完全模拟本地开发环境'
+      description: 'Vercel部署的代理服务器，完全模拟本地开发环境',
+      isVercelProxy: true
     },
     // 方案2: 直接连接 (备用尝试)
     {
@@ -55,12 +56,22 @@ export const API_CONFIG = {
           description: `生产环境 - ${selectedProxy.description}`
         };
       } else {
-        return {
-          baseURL: selectedProxy.url + encodeURIComponent(this.JIRA_BASE_URL),
-          useCorsProxy: true,
-          proxyName: selectedProxy.name,
-          description: `生产环境 - 使用${selectedProxy.name}代理`
-        };
+        // Vercel代理不需要URL编码，直接使用代理URL
+        if (selectedProxy.isVercelProxy) {
+          return {
+            baseURL: selectedProxy.url,
+            useCorsProxy: true,
+            proxyName: selectedProxy.name,
+            description: `生产环境 - 使用${selectedProxy.name}代理`
+          };
+        } else {
+          return {
+            baseURL: selectedProxy.url + encodeURIComponent(this.JIRA_BASE_URL),
+            useCorsProxy: true,
+            proxyName: selectedProxy.name,
+            description: `生产环境 - 使用${selectedProxy.name}代理`
+          };
+        }
       }
     }
   },
@@ -78,12 +89,22 @@ export const API_CONFIG = {
           description: `使用${proxy.name} - ${proxy.description}`
         };
       } else {
-        return {
-          baseURL: proxy.url + encodeURIComponent(this.JIRA_BASE_URL),
-          useCorsProxy: true,
-          proxyName: proxy.name,
-          description: `使用${proxy.name}代理`
-        };
+        // Vercel代理不需要URL编码，直接使用代理URL
+        if (proxy.isVercelProxy) {
+          return {
+            baseURL: proxy.url,
+            useCorsProxy: true,
+            proxyName: proxy.name,
+            description: `使用${proxy.name}代理`
+          };
+        } else {
+          return {
+            baseURL: proxy.url + encodeURIComponent(this.JIRA_BASE_URL),
+            useCorsProxy: true,
+            proxyName: proxy.name,
+            description: `使用${proxy.name}代理`
+          };
+        }
       }
     }
     return this.getApiConfig();
