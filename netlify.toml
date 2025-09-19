@@ -4,7 +4,7 @@
 
 [[redirects]]
   from = "/rest/*"
-  to = "/.netlify/functions/jira-proxy?path=:splat"
+  to = "/.netlify/functions/jira-proxy?path=/rest/:splat"
   status = 200
 
 [[redirects]]

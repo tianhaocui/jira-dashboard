@@ -1,12 +1,59 @@
 // Netlify Function for Jira Proxy
+const https = require('https');
+const http = require('http');
+const { URL } = require('url');
+
+// 使用Node.js原生模块发送HTTP请求
+function makeRequest(url, options) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const isHttps = urlObj.protocol === 'https:';
+    const client = isHttps ? https : http;
+    
+    const requestOptions = {
+      hostname: urlObj.hostname,
+      port: urlObj.port || (isHttps ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
+      method: options.method || 'GET',
+      headers: options.headers || {}
+    };
+    
+    const req = client.request(requestOptions, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        resolve({
+          statusCode: res.statusCode,
+          headers: res.headers,
+          body: data
+        });
+      });
+    });
+    
+    req.on('error', (error) => {
+      reject(error);
+    });
+    
+    // 如果有请求体，写入
+    if (options.body) {
+      req.write(options.body);
+    }
+    
+    req.end();
+  });
+}
+
 exports.handler = async (event, context) => {
   console.log(`收到请求: ${event.httpMethod} ${event.path}`);
   console.log('查询参数:', event.queryStringParameters);
-  console.log('请求头:', event.headers);
 
   // 设置CORS头
   const headers = {
-    'Access-Control-Allow-Origin': 'https://tianhaocui.github.io',
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization, Content-Type, Accept, User-Agent, Cache-Control',
     'Access-Control-Allow-Credentials': 'true',
@@ -19,20 +66,35 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ message: 'CORS preflight OK' })
+      body: ''
     };
   }
 
   try {
-    // 获取路径参数
+    // 从查询参数或路径中获取目标路径
     const { path } = event.queryStringParameters || {};
-    let targetPath = '';
+    let targetPath = path;
     
-    if (path) {
-      targetPath = `/${path}`;
+    // 如果查询参数中没有路径，尝试从URL路径中提取
+    if (!targetPath) {
+      targetPath = event.path;
+      const functionPrefix = '/.netlify/functions/jira-proxy';
+      if (targetPath.startsWith(functionPrefix)) {
+        targetPath = targetPath.substring(functionPrefix.length);
+      }
     }
     
-    const targetUrl = `https://jira.logisticsteam.com/rest${targetPath}`;
+    // 确保路径以/开头
+    if (targetPath && !targetPath.startsWith('/')) {
+      targetPath = '/' + targetPath;
+    }
+    
+    // 如果没有路径，默认为serverInfo
+    if (!targetPath || targetPath === '/') {
+      targetPath = '/rest/api/2/serverInfo';
+    }
+    
+    const targetUrl = `https://jira.logisticsteam.com${targetPath}`;
     console.log(`代理请求到: ${targetUrl}`);
 
     // 构建请求头
@@ -63,26 +125,16 @@ exports.handler = async (event, context) => {
 
     console.log('发送请求选项:', { method: requestOptions.method, headers: Object.keys(requestOptions.headers) });
 
-    // 发送请求到Jira
-    const response = await fetch(targetUrl, requestOptions);
+    // 使用Node.js原生模块发送请求到Jira
+    const response = await makeRequest(targetUrl, requestOptions);
     
-    console.log('Jira响应状态:', response.status);
-
-    // 获取响应数据
-    const contentType = response.headers.get('content-type');
-    let data;
-    
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      data = await response.text();
-    }
+    console.log('Jira响应状态:', response.statusCode);
 
     // 返回响应
     return {
-      statusCode: response.status,
+      statusCode: response.statusCode,
       headers,
-      body: typeof data === 'object' ? JSON.stringify(data) : data
+      body: response.body
     };
 
   } catch (error) {

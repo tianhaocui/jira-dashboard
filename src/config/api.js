@@ -12,11 +12,12 @@ export const API_CONFIG = {
       description: '本地Node.js代理服务器',
       localOnly: true
     },
-    // 方案2: 生产环境使用Netlify Functions
+    // 方案2: 直接连接（推荐使用CORS扩展）
     {
-      name: 'Netlify代理',
-      url: 'https://melodic-cocada-438aaf.netlify.app',
-      description: '生产环境Netlify代理'
+      name: '直接连接',
+      url: '',
+      directConnect: true,
+      description: '直接连接Jira服务器（推荐安装CORS扩展）'
     },
     // 方案3: 备用代理
     {
