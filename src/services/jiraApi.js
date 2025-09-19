@@ -120,11 +120,25 @@ class JiraApiService {
     } catch (error) {
       console.error('❌ 连接测试失败:', error.response?.status, error.response?.statusText);
       console.error('   错误详情:', error.message);
+      console.error('   完整错误:', error);
+      if (error.response?.data) {
+        console.error('   服务器响应:', error.response.data);
+      }
       
       // 如果使用CORS代理，不尝试备用端点，直接返回错误
       if (this.apiConfig.useCorsProxy) {
         console.log('🚫 使用CORS代理时跳过备用端点测试');
         return { success: false, error: `连接失败: ${error.message}` };
+      }
+      
+      // 如果是直接连接且出现CORS错误，提供更友好的错误信息
+      if (!this.apiConfig.useCorsProxy && (error.message.includes('CORS') || error.message.includes('Network Error') || error.response?.status === 500)) {
+        console.log('🚫 直接连接失败，可能需要CORS扩展');
+        return { 
+          success: false, 
+          error: 'CORS',
+          message: '请安装并启用CORS浏览器扩展，或检查网络连接' 
+        };
       }
       
       // 只在非代理环境下尝试备用端点
